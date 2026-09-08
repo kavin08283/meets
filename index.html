@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#efeee9">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>이번 달 쓴 날</title>
+<title>이번 달 날 수</title>
 <style>
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { margin:0; padding:16px 16px 40px; background:#efeee9; color:#1a1a1c;
@@ -17,13 +17,31 @@
   .burn { text-align:center; padding:6px 0 4px; }
   .burn .n { font-size:60px; font-weight:800; letter-spacing:-.04em; line-height:1; font-variant-numeric:tabular-nums; }
   .burn .n.over { color:#b0492f; }
+  .burn .n.good { color:#2e6b52; }
   .burn .u { font-size:13px; color:#a3a39a; margin-top:9px; }
-  .track { height:10px; background:#f3f2ee; border-radius:6px; margin:18px 0 10px; overflow:hidden; }
+
+  .split { display:flex; margin:20px 0 14px; }
+  .split div { flex:1; text-align:center; }
+  .split span { display:block; font-size:11px; color:#a3a39a; margin-bottom:5px; }
+  .split b { font-size:20px; font-variant-numeric:tabular-nums; }
+  .split .out b { color:#b0492f; }
+  .split .in b { color:#2e6b52; }
+  .split .day b { color:#1a1a1c; }
+
+  .track { height:10px; background:#f3f2ee; border-radius:6px; margin:0 0 12px; overflow:hidden; }
   .track .fill { height:100%; background:#1a1a1c; border-radius:6px; transition:width .2s; }
   .track .fill.over { background:#b0492f; }
   .verdict { font-size:13px; text-align:center; color:#a3a39a; line-height:1.7; }
   .verdict b { color:#1a1a1c; }
   .verdict.over b { color:#b0492f; }
+  .verdict.good b { color:#2e6b52; }
+
+  .seg { display:flex; background:#f3f2ee; border-radius:11px; padding:3px; margin-bottom:12px; }
+  .seg button { flex:1; padding:11px 0; font-size:15px; font-weight:700; font-family:inherit;
+    background:none; border:0; border-radius:9px; color:#a3a39a; cursor:pointer; }
+  .seg button.on { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+  .seg button.on[data-k="out"] { color:#b0492f; }
+  .seg button.on[data-k="in"] { color:#2e6b52; }
 
   .frow { display:flex; gap:8px; }
   .frow input { padding:12px; font-size:16px; border:1px solid #e2e0d9; border-radius:11px;
@@ -34,7 +52,7 @@
   .quick button { flex:1; padding:10px 0; font-size:14px; font-weight:600; font-family:inherit;
     background:#f3f2ee; border:0; border-radius:10px; color:#57574f; cursor:pointer; }
   .prev { font-size:13px; color:#a3a39a; text-align:center; min-height:19px; margin-top:10px; }
-  .prev b { color:#b0492f; }
+  .prev b { color:#b0492f; } .prev b.g { color:#2e6b52; }
   button.main { width:100%; padding:14px; font-size:15px; font-weight:700; font-family:inherit;
     background:#1a1a1c; color:#fff; border:0; border-radius:12px; cursor:pointer; margin-top:10px; }
   button.main:disabled { background:#d9d7d0; }
@@ -46,13 +64,15 @@
   .it-main { flex:1; min-width:0; }
   .it-t { font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .it-d { font-size:12px; color:#b5b5ad; margin-top:3px; }
-  .it-n { font-size:15px; font-weight:700; color:#b0492f; font-variant-numeric:tabular-nums; }
+  .it-n { font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .it-n.m { color:#b0492f; } .it-n.p { color:#2e6b52; }
   .x { border:0; background:none; color:#c8c6c0; font-size:20px; padding:0 2px; cursor:pointer; font-family:inherit; }
   .empty { font-size:14px; color:#b5b5ad; text-align:center; padding:12px 0; }
 
   .hist { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f4f3ef; font-size:14px; }
   .hist:last-child { border-bottom:0; }
   .hist b { font-variant-numeric:tabular-nums; }
+  .hist b.m { color:#b0492f; } .hist b.p { color:#2e6b52; }
 
   .grid { display:flex; gap:8px; }
   .fld { flex:1; }
@@ -60,6 +80,7 @@
   .fld input { width:100%; padding:10px 4px; font-size:16px; text-align:center; font-weight:600;
     border:1px solid #e2e0d9; border-radius:10px; background:#fafaf7; font-family:inherit; color:#1a1a1c; }
   .fld input:focus { outline:none; border-color:#1a1a1c; }
+  .fnote { font-size:11px; color:#b5b5ad; margin-top:10px; line-height:1.6; }
 
   dialog { border:0; border-radius:18px; padding:18px; width:min(430px, calc(100vw - 32px)); background:#fff; color:#1a1a1c; }
   dialog::backdrop { background:rgba(26,26,28,.45); }
@@ -78,17 +99,26 @@
 <body>
 <div class="wrap">
   <div class="card">
-    <h2>이번 달 쓴 날</h2>
+    <h2>이번 달</h2>
     <div class="burn">
-      <div class="n" id="burnN">0</div>
-      <div class="u">일어치</div>
+      <div class="n" id="netN">0</div>
+      <div class="u" id="netU">일 소모</div>
+    </div>
+    <div class="split">
+      <div class="out"><span>쓴 날</span><b id="sOut">0</b></div>
+      <div class="in"><span>번 날</span><b id="sIn">0</b></div>
+      <div class="day"><span>산 날</span><b id="sDay">0</b></div>
     </div>
     <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
     <div class="verdict" id="verdict"></div>
   </div>
 
   <div class="card">
-    <h2>지출 기록</h2>
+    <h2>기록</h2>
+    <div class="seg">
+      <button data-k="out" class="on">썼다</button>
+      <button data-k="in">벌었다</button>
+    </div>
     <div class="quick" id="quick"></div>
     <div class="frow">
       <input id="amt" class="n" type="number" inputmode="decimal" placeholder="만 원">
@@ -109,6 +139,7 @@
     <div class="grid">
       <div class="fld"><span>하루 단가 (만 원)</span><input id="rate" type="number" inputmode="decimal"></div>
     </div>
+    <p class="fnote">본업 벌이를 하루로 나눈 값이에요. 그래서 월급은 벌었다에 넣지 마세요. 부업, 주식, 중고 판매처럼 본업 밖에서 들어온 돈만 넣으면 됩니다.</p>
   </div>
 
   <button class="ghost" id="wallBtn">배경화면 만들기</button>
@@ -137,6 +168,7 @@
   let state = { spend: [], rate: 10 };
   let theme = { bg:'#faf9f5', ink:'#1a1a1c', mute:'#b5b5ad' };
   let showLabel = true;
+  let kind = 'out';
   let mode = 'memory';
   const $ = id => document.getElementById(id);
   const r1 = n => Math.round(n * 10) / 10;
@@ -175,20 +207,34 @@
 
   const mKey = ts => { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
   const thisMonth = () => state.spend.filter(e => mKey(e.ts) === mKey(Date.now()));
-  const burnDays  = () => thisMonth().reduce((s, e) => s + e.man, 0) / (state.rate || 1);
-  const elapsed   = () => new Date().getDate();
+  const sumDays = (list, k) =>
+    list.filter(e => (e.kind || 'out') === k).reduce((s, e) => s + e.man, 0) / (state.rate || 1);
+  const elapsed = () => new Date().getDate();
 
   function renderBurn() {
-    const d = burnDays(), e = elapsed(), over = d > e;
-    $('burnN').textContent = r1(d);
-    $('burnN').className = 'n' + (over ? ' over' : '');
+    const list = thisMonth();
+    const out = sumDays(list, 'out'), inn = sumDays(list, 'in');
+    const net = out - inn, e = elapsed();
+    const over = net > e, good = net <= 0;
+
+    $('netN').textContent = net >= 0 ? r1(net) : '+' + r1(-net);
+    $('netN').className = 'n' + (good ? ' good' : over ? ' over' : '');
+    $('netU').textContent = good ? '일 남김' : '일 소모';
+
+    $('sOut').textContent = r1(out);
+    $('sIn').textContent = r1(inn);
+    $('sDay').textContent = e;
+
     const fill = $('fill');
-    fill.style.width = Math.min(100, d / Math.max(e, 1) * 100) + '%';
+    fill.style.width = Math.max(0, Math.min(100, net / Math.max(e, 1) * 100)) + '%';
     fill.className = 'fill' + (over ? ' over' : '');
+
     const v = $('verdict');
-    v.className = 'verdict' + (over ? ' over' : '');
-    v.innerHTML = '이번 달 <b>' + e + '일</b> 살면서 <b>' + r1(d) + '일</b>어치를 썼어요' +
-      (over ? '<br>사는 속도보다 빨라요' : '');
+    v.className = 'verdict' + (good ? ' good' : over ? ' over' : '');
+    v.innerHTML = good
+      ? '쓴 것보다 <b>' + r1(-net) + '일</b>어치를 더 벌었어요'
+      : '<b>' + e + '일</b> 살면서 <b>' + r1(net) + '일</b>어치를 썼어요' +
+        (over ? '<br>사는 속도보다 빨라요' : '');
   }
 
   function renderLog() {
@@ -197,10 +243,12 @@
     if (!list.length) { box.innerHTML = '<div class="empty">이번 달 기록이 없어요</div>'; return; }
     box.innerHTML = '';
     list.slice().reverse().forEach(e => {
+      const plus = (e.kind || 'out') === 'in';
       const row = document.createElement('div');
       row.className = 'item';
       row.innerHTML = '<div class="it-main"><div class="it-t"></div><div class="it-d"></div></div>' +
-        '<div class="it-n">−' + r1(e.man / (state.rate || 1)) + '일</div><button class="x">×</button>';
+        '<div class="it-n ' + (plus ? 'p' : 'm') + '">' + (plus ? '+' : '−') +
+        r1(e.man / (state.rate || 1)) + '일</div><button class="x">×</button>';
       row.querySelector('.it-t').textContent = e.memo || (e.man + '만 원');
       const dt = new Date(e.ts);
       row.querySelector('.it-d').textContent = (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 · ' + e.man + '만 원';
@@ -219,7 +267,8 @@
     state.spend.forEach(e => {
       const k = mKey(e.ts);
       if (k === cur) return;
-      map[k] = (map[k] || 0) + e.man;
+      if (!map[k]) map[k] = { out: 0, in: 0 };
+      map[k][(e.kind || 'out')] += e.man;
     });
     const keys = Object.keys(map).sort().reverse().slice(0, 6);
     if (!keys.length) { box.innerHTML = '<div class="empty">아직 없어요</div>'; return; }
@@ -227,10 +276,13 @@
     keys.forEach(k => {
       const parts = k.split('-');
       const dim = new Date(+parts[0], +parts[1], 0).getDate();
-      const days = map[k] / (state.rate || 1);
+      const net = (map[k].out - map[k].in) / (state.rate || 1);
       const d = document.createElement('div');
       d.className = 'hist';
-      d.innerHTML = '<span>' + (+parts[1]) + '월</span><b>' + r1(days) + ' / ' + dim + '일</b>';
+      d.innerHTML = '<span>' + (+parts[1]) + '월</span>' +
+        (net <= 0
+          ? '<b class="p">+' + r1(-net) + '일</b>'
+          : '<b class="m">' + r1(net) + ' / ' + dim + '일</b>');
       box.appendChild(d);
     });
   }
@@ -238,12 +290,15 @@
   function preview() {
     const v = parseFloat($('amt').value);
     if (!v || v <= 0) { $('prev').innerHTML = ''; $('go').disabled = true; return; }
-    $('prev').innerHTML = '내 <b>' + r1(v / (state.rate || 1)) + '일</b>어치';
+    const d = r1(v / (state.rate || 1));
+    $('prev').innerHTML = kind === 'in'
+      ? '<b class="g">+' + d + '일</b>어치'
+      : '내 <b>' + d + '일</b>어치';
     $('go').disabled = false;
   }
 
   function buildQuick() {
-    const vals = [1, 3, 5, 10];
+    const vals = kind === 'in' ? [5, 10, 30, 50] : [1, 3, 5, 10];
     $('quick').innerHTML = '';
     vals.forEach(v => {
       const b = document.createElement('button');
@@ -262,41 +317,49 @@
     ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, 1170, 2532);
     ctx.textAlign = 'center';
 
-    const d = r1(burnDays()), e = elapsed();
+    const list = thisMonth();
+    const net = sumDays(list, 'out') - sumDays(list, 'in');
+    const e = elapsed();
+    const good = net <= 0;
+    const txt = good ? '+' + r1(-net) : String(r1(net));
 
-    let y = 1120;
+    const y = 1120;
     if (showLabel) {
       ctx.fillStyle = theme.mute; ctx.font = '600 46px ' + F;
-      ctx.fillText('이번 달 쓴 날', 585, y - 130);
+      ctx.fillText(good ? '이번 달 남긴 날' : '이번 달 쓴 날', 585, y - 130);
     }
-    ctx.fillStyle = theme.ink; ctx.font = '800 230px ' + F;
-    ctx.fillText(d, 585, y + 80);
+    ctx.fillStyle = good ? '#2e6b52' : theme.ink;
+    ctx.font = '800 230px ' + F;
+    ctx.fillText(txt, 585, y + 80);
 
-    if (showLabel) {
-      ctx.fillStyle = theme.mute; ctx.font = '500 52px ' + F;
-      ctx.fillText('살아온 날 ' + e, 585, y + 200);
-    } else {
-      ctx.fillStyle = theme.mute; ctx.font = '600 66px ' + F;
-      ctx.fillText(e, 585, y + 200);
-    }
+    ctx.fillStyle = theme.mute;
+    if (showLabel) { ctx.font = '500 52px ' + F; ctx.fillText('살아온 날 ' + e, 585, y + 200); }
+    else { ctx.font = '600 66px ' + F; ctx.fillText(e, 585, y + 200); }
 
     const w = 470, x = 585 - w / 2, by = y + 300;
     ctx.fillStyle = theme.mute; ctx.globalAlpha = .28;
     ctx.beginPath(); ctx.roundRect(x, by, w, 12, 6); ctx.fill();
     ctx.globalAlpha = 1;
-    ctx.fillStyle = d > e ? '#b0492f' : theme.ink;
-    const fw = Math.max(6, Math.min(w, d / Math.max(e, 1) * w));
+    ctx.fillStyle = good ? '#2e6b52' : (net > e ? '#b0492f' : theme.ink);
+    const fw = Math.max(6, Math.min(w, Math.abs(net) / Math.max(e, 1) * w));
     ctx.beginPath(); ctx.roundRect(x, by, fw, 12, 6); ctx.fill();
   }
 
   function renderAll() { renderBurn(); renderLog(); renderHist(); preview(); drawWall(); }
 
   $('amt').addEventListener('input', preview);
+  document.querySelectorAll('.seg button').forEach(b =>
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.seg button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on'); kind = b.dataset.k;
+      buildQuick(); preview();
+    })
+  );
   $('go').addEventListener('click', async () => {
     const v = parseFloat($('amt').value);
     if (!v || v <= 0) return;
     state.spend.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
-      man: v, memo: $('memo').value.trim(), ts: Date.now() });
+      man: v, kind, memo: $('memo').value.trim(), ts: Date.now() });
     $('amt').value = ''; $('memo').value = '';
     await save(); renderAll();
   });
