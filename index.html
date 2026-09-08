@@ -5,69 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#efeee9">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<title>남은 횟수</title>
+<title>이번 달 쓴 날</title>
 <style>
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { margin:0; padding:16px 16px 40px; background:#efeee9; color:#1a1a1c;
     font-family:-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
   .wrap { max-width:460px; margin:0 auto; }
   .card { background:#fff; border-radius:18px; padding:20px; margin-bottom:12px; }
+  h2 { font-size:12px; margin:0 0 14px; color:#a3a39a; font-weight:700; letter-spacing:.06em; }
 
-  .p-top { display:flex; align-items:flex-start; gap:14px; }
-  .p-id { flex:1; min-width:0; }
-  .p-name { font-size:17px; font-weight:700; }
-  .p-since { font-size:13px; color:#a3a39a; margin-top:5px; }
-  .p-since.warn { color:#b0492f; font-weight:600; }
-  .p-num { text-align:right; line-height:1; }
-  .p-num b { font-size:46px; font-weight:800; letter-spacing:-.035em; font-variant-numeric:tabular-nums; display:block; }
-  .p-num span { font-size:12px; color:#a3a39a; letter-spacing:.02em; }
+  .burn { text-align:center; padding:6px 0 4px; }
+  .burn .n { font-size:60px; font-weight:800; letter-spacing:-.04em; line-height:1; font-variant-numeric:tabular-nums; }
+  .burn .n.over { color:#b0492f; }
+  .burn .u { font-size:13px; color:#a3a39a; margin-top:9px; }
+  .track { height:10px; background:#f3f2ee; border-radius:6px; margin:18px 0 10px; overflow:hidden; }
+  .track .fill { height:100%; background:#1a1a1c; border-radius:6px; transition:width .2s; }
+  .track .fill.over { background:#b0492f; }
+  .verdict { font-size:13px; text-align:center; color:#a3a39a; line-height:1.7; }
+  .verdict b { color:#1a1a1c; }
+  .verdict.over b { color:#b0492f; }
 
-  .p-act { display:flex; gap:8px; margin-top:16px; }
-  .p-act button { padding:12px; font-size:14px; font-weight:700; font-family:inherit;
-    border:0; border-radius:11px; cursor:pointer; }
-  .met { background:#1a1a1c; color:#fff; flex:1; }
-  .cfg { background:#f3f2ee; color:#57574f; width:52px; }
+  .frow { display:flex; gap:8px; }
+  .frow input { padding:12px; font-size:16px; border:1px solid #e2e0d9; border-radius:11px;
+    background:#fafaf7; font-family:inherit; color:#1a1a1c; min-width:0; flex:1; }
+  .frow input.n { width:92px; flex:none; text-align:right; font-weight:700; }
+  .frow input:focus { outline:none; border-color:#1a1a1c; }
+  .quick { display:flex; gap:8px; margin-bottom:10px; }
+  .quick button { flex:1; padding:10px 0; font-size:14px; font-weight:600; font-family:inherit;
+    background:#f3f2ee; border:0; border-radius:10px; color:#57574f; cursor:pointer; }
+  .prev { font-size:13px; color:#a3a39a; text-align:center; min-height:19px; margin-top:10px; }
+  .prev b { color:#b0492f; }
+  button.main { width:100%; padding:14px; font-size:15px; font-weight:700; font-family:inherit;
+    background:#1a1a1c; color:#fff; border:0; border-radius:12px; cursor:pointer; margin-top:10px; }
+  button.main:disabled { background:#d9d7d0; }
+  button.ghost { width:100%; padding:13px; font-size:14px; font-weight:600; font-family:inherit;
+    background:#fff; color:#57574f; border:1px solid #e2e0d9; border-radius:11px; cursor:pointer; margin-bottom:8px; }
 
-  .panel { display:none; margin-top:16px; padding-top:16px; border-top:1px solid #f0efea; }
-  .panel.on { display:block; }
+  .item { display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid #f4f3ef; }
+  .item:last-child { border-bottom:0; }
+  .it-main { flex:1; min-width:0; }
+  .it-t { font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .it-d { font-size:12px; color:#b5b5ad; margin-top:3px; }
+  .it-n { font-size:15px; font-weight:700; color:#b0492f; font-variant-numeric:tabular-nums; }
+  .x { border:0; background:none; color:#c8c6c0; font-size:20px; padding:0 2px; cursor:pointer; font-family:inherit; }
+  .empty { font-size:14px; color:#b5b5ad; text-align:center; padding:12px 0; }
+
+  .hist { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f4f3ef; font-size:14px; }
+  .hist:last-child { border-bottom:0; }
+  .hist b { font-variant-numeric:tabular-nums; }
+
   .grid { display:flex; gap:8px; }
   .fld { flex:1; }
   .fld span { display:block; font-size:11px; color:#a3a39a; margin-bottom:5px; text-align:center; }
   .fld input { width:100%; padding:10px 4px; font-size:16px; text-align:center; font-weight:600;
     border:1px solid #e2e0d9; border-radius:10px; background:#fafaf7; font-family:inherit; color:#1a1a1c; }
   .fld input:focus { outline:none; border-color:#1a1a1c; }
-  .pace { font-size:12px; color:#a3a39a; margin-top:12px; line-height:1.6; }
-  .pace b { color:#2e6b52; }
-  .del { width:100%; margin-top:12px; padding:11px; font-size:13px; font-weight:600; font-family:inherit;
-    background:#fff; color:#b0492f; border:1px solid #efe2dd; border-radius:10px; cursor:pointer; }
-  .undo { width:100%; margin-top:8px; padding:11px; font-size:13px; font-weight:600; font-family:inherit;
-    background:#fff; color:#57574f; border:1px solid #e2e0d9; border-radius:10px; cursor:pointer; }
 
-  h2 { font-size:12px; margin:0 0 14px; color:#a3a39a; font-weight:700; letter-spacing:.06em; }
-  .frow { display:flex; gap:8px; }
-  .frow input { padding:12px; font-size:16px; border:1px solid #e2e0d9; border-radius:11px;
-    background:#fafaf7; font-family:inherit; color:#1a1a1c; min-width:0; flex:1; }
-  .frow input.n { width:92px; flex:none; text-align:right; font-weight:700; }
-  .frow input:focus { outline:none; border-color:#1a1a1c; }
-  button.main { width:100%; padding:14px; font-size:15px; font-weight:700; font-family:inherit;
-    background:#1a1a1c; color:#fff; border:0; border-radius:12px; cursor:pointer; margin-top:10px; }
-  button.ghost { width:100%; padding:13px; font-size:14px; font-weight:600; font-family:inherit;
-    background:#fff; color:#57574f; border:1px solid #e2e0d9; border-radius:11px; cursor:pointer; margin-bottom:8px; }
-
-  .conv { display:flex; justify-content:space-between; align-items:baseline;
-    padding:11px 0; border-bottom:1px solid #f4f3ef; font-size:15px; }
-  .conv:last-child { border-bottom:0; }
-  .conv b { font-size:20px; color:#b0492f; font-variant-numeric:tabular-nums; }
-  .empty { font-size:14px; color:#b5b5ad; text-align:center; padding:12px 0; }
-
-  dialog { border:0; border-radius:18px; padding:18px; width:min(430px, calc(100vw - 32px));
-    background:#fff; color:#1a1a1c; }
+  dialog { border:0; border-radius:18px; padding:18px; width:min(430px, calc(100vw - 32px)); background:#fff; color:#1a1a1c; }
   dialog::backdrop { background:rgba(26,26,28,.45); }
   canvas { width:100%; border-radius:13px; display:block; box-shadow:0 2px 12px rgba(0,0,0,.08); margin-bottom:12px; }
-  .sw { display:flex; gap:8px; margin-bottom:12px; justify-content:center; }
-  .sw div { width:34px; height:34px; border-radius:9px; border:2px solid transparent; cursor:pointer; }
-  .sw div.on { border-color:#1a1a1c; }
+  .opts { display:flex; gap:8px; margin-bottom:12px; justify-content:center; align-items:center; flex-wrap:wrap; }
+  .opts .sw { width:34px; height:34px; border-radius:9px; border:2px solid transparent; cursor:pointer; }
+  .opts .sw.on { border-color:#1a1a1c; }
+  .opts .tog { padding:9px 14px; font-size:13px; font-weight:600; font-family:inherit;
+    background:#f3f2ee; border:0; border-radius:9px; color:#57574f; cursor:pointer; }
+  .opts .tog.on { background:#1a1a1c; color:#fff; }
   .hint { font-size:12px; color:#b5b5ad; text-align:center; line-height:1.6; margin:12px 0 0; }
   .status { font-size:11px; color:#b5b5ad; text-align:center; margin:14px 0 0; line-height:1.6; }
   .status.bad { color:#b0492f; }
@@ -75,21 +77,38 @@
 </head>
 <body>
 <div class="wrap">
-  <div id="people"></div>
-
   <div class="card">
-    <h2>이 돈이면 몇 번</h2>
-    <div class="frow"><input id="amt" type="number" inputmode="decimal" placeholder="금액 (만 원)"></div>
-    <div id="conv"><div class="empty">금액을 넣어보세요</div></div>
+    <h2>이번 달 쓴 날</h2>
+    <div class="burn">
+      <div class="n" id="burnN">0</div>
+      <div class="u">일어치</div>
+    </div>
+    <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
+    <div class="verdict" id="verdict"></div>
   </div>
 
   <div class="card">
-    <h2>사람 추가</h2>
+    <h2>지출 기록</h2>
+    <div class="quick" id="quick"></div>
     <div class="frow">
-      <input id="f-name" type="text" placeholder="이름 (예: 엄마)">
-      <input id="f-age" class="n" type="number" inputmode="numeric" placeholder="나이">
+      <input id="amt" class="n" type="number" inputmode="decimal" placeholder="만 원">
+      <input id="memo" type="text" placeholder="메모 (선택)">
     </div>
-    <button class="main" id="add">추가</button>
+    <div class="prev" id="prev"></div>
+    <button class="main" id="go" disabled>기록</button>
+    <div id="log" style="margin-top:6px"></div>
+  </div>
+
+  <div class="card">
+    <h2>지난 달들</h2>
+    <div id="hist"></div>
+  </div>
+
+  <div class="card">
+    <h2>설정</h2>
+    <div class="grid">
+      <div class="fld"><span>하루 단가 (만 원)</span><input id="rate" type="number" inputmode="decimal"></div>
+    </div>
   </div>
 
   <button class="ghost" id="wallBtn">배경화면 만들기</button>
@@ -100,27 +119,28 @@
 </div>
 
 <dialog id="dlg">
-  <div class="sw" id="sw">
-    <div data-bg="#faf9f5" data-ink="#1a1a1c" style="background:#faf9f5" class="on"></div>
-    <div data-bg="#111112" data-ink="#f4f4f0" style="background:#111112"></div>
-    <div data-bg="#141c2b" data-ink="#eef1f6" style="background:#141c2b"></div>
+  <div class="opts">
+    <div class="sw on" data-bg="#faf9f5" data-ink="#1a1a1c" data-mute="#b5b5ad" style="background:#faf9f5"></div>
+    <div class="sw" data-bg="#111112" data-ink="#f4f4f0" data-mute="#6b6b6b" style="background:#111112"></div>
+    <div class="sw" data-bg="#141c2b" data-ink="#eef1f6" data-mute="#6f7c93" style="background:#141c2b"></div>
+    <button class="tog on" id="tog">설명 넣기</button>
   </div>
   <canvas id="cv" width="1170" height="2532"></canvas>
   <button class="main" id="dl" style="margin-top:0">이미지 저장</button>
   <button class="ghost" id="close" style="margin-top:8px; margin-bottom:0">닫기</button>
-  <p class="hint">숫자만 나가서 옆에서 봐도 뜻을 알 수 없어요.<br>저장이 안 되면 그림을 길게 눌러 저장하세요.</p>
+  <p class="hint">배경화면은 저장한 순간의 숫자예요.<br>가끔 다시 저장해야 최신 숫자가 됩니다.</p>
 </dialog>
 
 <script>
 (function () {
-  const KEY = 'meets-final';
-  let state = { people: [] };
-  let theme = { bg:'#faf9f5', ink:'#1a1a1c' };
+  const KEY = 'burn-days';
+  let state = { spend: [], rate: 10 };
+  let theme = { bg:'#faf9f5', ink:'#1a1a1c', mute:'#b5b5ad' };
+  let showLabel = true;
   let mode = 'memory';
   const $ = id => document.getElementById(id);
-  const DAY = 86400000;
+  const r1 = n => Math.round(n * 10) / 10;
 
-  /* ---- 저장: Claude 저장소 → 브라우저 저장소 → 메모리 순으로 ---- */
   async function detect() {
     if (typeof window.storage !== 'undefined' && window.storage) {
       try { await window.storage.list(''); mode = 'claude'; return; } catch (e) {}
@@ -132,7 +152,6 @@
       mode = 'local';
     } catch (e) { mode = 'memory'; }
   }
-
   async function save() {
     try {
       const s = JSON.stringify(state);
@@ -140,187 +159,169 @@
       else if (mode === 'local') localStorage.setItem(KEY, s);
     } catch (e) { mode = 'memory'; showStatus(); }
   }
-
   async function load() {
     try {
-      if (mode === 'claude') {
-        const r = await window.storage.get(KEY);
-        if (r && r.value) return JSON.parse(r.value);
-      } else if (mode === 'local') {
-        const s = localStorage.getItem(KEY);
-        if (s) return JSON.parse(s);
-      }
+      if (mode === 'claude') { const r = await window.storage.get(KEY); if (r && r.value) return JSON.parse(r.value); }
+      else if (mode === 'local') { const s = localStorage.getItem(KEY); if (s) return JSON.parse(s); }
     } catch (e) {}
     return null;
   }
-
   function showStatus() {
     const el = $('status');
-    if (mode === 'memory') {
-      el.className = 'status bad';
-      el.textContent = '저장이 안 되는 환경이에요. 이 화면을 닫으면 기록이 사라집니다.';
-    } else {
-      el.className = 'status';
-      el.textContent = mode === 'local'
-        ? '이 브라우저에 저장됩니다. 가끔 백업을 내려받아 두세요.'
-        : '기록이 저장됩니다.';
-    }
+    if (mode === 'memory') { el.className = 'status bad'; el.textContent = '저장이 안 되는 환경이에요. 화면을 닫으면 기록이 사라집니다.'; }
+    else { el.className = 'status'; el.textContent = mode === 'local'
+      ? '이 브라우저에 저장됩니다. 가끔 백업을 내려받아 두세요.' : '기록이 저장됩니다.'; }
   }
 
-  /* ---- 계산 ---- */
-  const years = p => Math.max(0, p.until - p.age);
-  const left  = p => Math.max(0, Math.round(years(p) * p.freq));
+  const mKey = ts => { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); };
+  const thisMonth = () => state.spend.filter(e => mKey(e.ts) === mKey(Date.now()));
+  const burnDays  = () => thisMonth().reduce((s, e) => s + e.man, 0) / (state.rate || 1);
+  const elapsed   = () => new Date().getDate();
 
-  function sinceText(p) {
-    if (!p.visits || !p.visits.length) return { t:'아직 기록 없음', warn:false };
-    const d = Math.floor((Date.now() - p.visits[p.visits.length - 1]) / DAY);
-    const gap = 365 / (p.freq || 1);
-    if (d === 0) return { t:'오늘 봤어요', warn:false };
-    return { t:'마지막으로 본 지 ' + d + '일', warn: d > gap };
+  function renderBurn() {
+    const d = burnDays(), e = elapsed(), over = d > e;
+    $('burnN').textContent = r1(d);
+    $('burnN').className = 'n' + (over ? ' over' : '');
+    const fill = $('fill');
+    fill.style.width = Math.min(100, d / Math.max(e, 1) * 100) + '%';
+    fill.className = 'fill' + (over ? ' over' : '');
+    const v = $('verdict');
+    v.className = 'verdict' + (over ? ' over' : '');
+    v.innerHTML = '이번 달 <b>' + e + '일</b> 살면서 <b>' + r1(d) + '일</b>어치를 썼어요' +
+      (over ? '<br>사는 속도보다 빨라요' : '');
   }
 
-  function paceText(p) {
-    const v = p.visits || [];
-    if (v.length < 2) return '두 번 이상 기록하면 실제 속도가 나와요';
-    const span = (v[v.length - 1] - v[0]) / DAY / 365;
-    if (span < 0.08) return '';
-    const pace = Math.round((v.length - 1) / span * 10) / 10;
-    return '실제 속도 1년에 <b>' + pace + '번</b> · 목표는 ' + p.freq + '번';
-  }
-
-  /* ---- 화면 ---- */
-  function renderPeople() {
-    const box = $('people');
+  function renderLog() {
+    const box = $('log');
+    const list = thisMonth();
+    if (!list.length) { box.innerHTML = '<div class="empty">이번 달 기록이 없어요</div>'; return; }
     box.innerHTML = '';
-    if (!state.people.length) {
-      box.innerHTML = '<div class="card"><div class="empty">아래에서 사람을 추가해보세요</div></div>';
-      return;
-    }
-    state.people.forEach(p => {
-      const c = document.createElement('div');
-      c.className = 'card';
-      c.innerHTML =
-        '<div class="p-top">' +
-          '<div class="p-id"><div class="p-name"></div><div class="p-since"></div></div>' +
-          '<div class="p-num"><b></b><span>번 남음</span></div>' +
-        '</div>' +
-        '<div class="p-act"><button class="met">만났다</button><button class="cfg">···</button></div>' +
-        '<div class="panel">' +
-          '<div class="grid">' +
-            '<div class="fld"><span>지금 나이</span><input class="i-age" type="number" inputmode="numeric"></div>' +
-            '<div class="fld"><span>몇 살까지</span><input class="i-until" type="number" inputmode="numeric"></div>' +
-            '<div class="fld"><span>1년에 몇 번</span><input class="i-freq" type="number" inputmode="decimal"></div>' +
-            '<div class="fld"><span>한 번 비용</span><input class="i-cost" type="number" inputmode="decimal"></div>' +
-          '</div>' +
-          '<div class="pace"></div>' +
-          '<button class="undo">마지막 기록 취소</button>' +
-          '<button class="del">삭제</button>' +
-        '</div>';
-
-      c.querySelector('.p-name').textContent = p.name;
-      ['i-age','i-until','i-freq','i-cost'].forEach((cls, i) => {
-        c.querySelector('.' + cls).value = [p.age, p.until, p.freq, p.cost][i];
-      });
-
-      function paint() {
-        c.querySelector('.p-num b').textContent = left(p);
-        const s = sinceText(p);
-        const el = c.querySelector('.p-since');
-        el.textContent = s.t;
-        el.className = 'p-since' + (s.warn ? ' warn' : '');
-        c.querySelector('.pace').innerHTML = paceText(p);
-      }
-      paint();
-
-      c.querySelector('.met').addEventListener('click', async () => {
-        p.visits = p.visits || [];
-        p.visits.push(Date.now());
-        paint(); await save();
-      });
-      c.querySelector('.undo').addEventListener('click', async () => {
-        if (p.visits && p.visits.length) { p.visits.pop(); paint(); await save(); }
-      });
-      c.querySelector('.cfg').addEventListener('click', () =>
-        c.querySelector('.panel').classList.toggle('on'));
-      c.querySelector('.del').addEventListener('click', async () => {
-        state.people = state.people.filter(x => x.id !== p.id);
+    list.slice().reverse().forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = '<div class="it-main"><div class="it-t"></div><div class="it-d"></div></div>' +
+        '<div class="it-n">−' + r1(e.man / (state.rate || 1)) + '일</div><button class="x">×</button>';
+      row.querySelector('.it-t').textContent = e.memo || (e.man + '만 원');
+      const dt = new Date(e.ts);
+      row.querySelector('.it-d').textContent = (dt.getMonth()+1) + '월 ' + dt.getDate() + '일 · ' + e.man + '만 원';
+      row.querySelector('.x').addEventListener('click', async () => {
+        state.spend = state.spend.filter(x => x.id !== e.id);
         await save(); renderAll();
       });
-
-      [['i-age','age'],['i-until','until'],['i-freq','freq'],['i-cost','cost']].forEach(function (pair) {
-        c.querySelector('.' + pair[0]).addEventListener('input', async e => {
-          const v = parseFloat(e.target.value);
-          if (isNaN(v) || v < 0) return;
-          p[pair[1]] = v; paint();
-          await save(); renderConv(); drawWall();
-        });
-      });
-
-      box.appendChild(c);
+      box.appendChild(row);
     });
   }
 
-  function renderConv() {
-    const v = parseFloat($('amt').value);
-    const box = $('conv');
-    if (!state.people.length) { box.innerHTML = '<div class="empty">사람을 먼저 추가하세요</div>'; return; }
-    if (!v || v <= 0) { box.innerHTML = '<div class="empty">금액을 넣어보세요</div>'; return; }
+  function renderHist() {
+    const box = $('hist');
+    const cur = mKey(Date.now());
+    const map = {};
+    state.spend.forEach(e => {
+      const k = mKey(e.ts);
+      if (k === cur) return;
+      map[k] = (map[k] || 0) + e.man;
+    });
+    const keys = Object.keys(map).sort().reverse().slice(0, 6);
+    if (!keys.length) { box.innerHTML = '<div class="empty">아직 없어요</div>'; return; }
     box.innerHTML = '';
-    state.people.forEach(p => {
-      const n = Math.round(v / (p.cost || 1) * 10) / 10;
+    keys.forEach(k => {
+      const parts = k.split('-');
+      const dim = new Date(+parts[0], +parts[1], 0).getDate();
+      const days = map[k] / (state.rate || 1);
       const d = document.createElement('div');
-      d.className = 'conv';
-      d.innerHTML = '<span></span><b>' + n + '번</b>';
-      d.querySelector('span').textContent = p.name;
+      d.className = 'hist';
+      d.innerHTML = '<span>' + (+parts[1]) + '월</span><b>' + r1(days) + ' / ' + dim + '일</b>';
       box.appendChild(d);
+    });
+  }
+
+  function preview() {
+    const v = parseFloat($('amt').value);
+    if (!v || v <= 0) { $('prev').innerHTML = ''; $('go').disabled = true; return; }
+    $('prev').innerHTML = '내 <b>' + r1(v / (state.rate || 1)) + '일</b>어치';
+    $('go').disabled = false;
+  }
+
+  function buildQuick() {
+    const vals = [1, 3, 5, 10];
+    $('quick').innerHTML = '';
+    vals.forEach(v => {
+      const b = document.createElement('button');
+      b.textContent = v + '만';
+      b.addEventListener('click', () => {
+        $('amt').value = (parseFloat($('amt').value) || 0) + v;
+        preview();
+      });
+      $('quick').appendChild(b);
     });
   }
 
   function drawWall() {
     const cv = $('cv'), ctx = cv.getContext('2d');
-    ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, 1170, 2532);
-    ctx.textAlign = 'center'; ctx.fillStyle = theme.ink;
     const F = '-apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
-    const nums = state.people.map(left);
-    if (!nums.length) {
-      ctx.font = '400 44px ' + F; ctx.fillStyle = '#b5b5ad';
-      ctx.fillText('사람을 추가하면 숫자가 나와요', 585, 1250);
-      return;
+    ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, 1170, 2532);
+    ctx.textAlign = 'center';
+
+    const d = r1(burnDays()), e = elapsed();
+
+    let y = 1120;
+    if (showLabel) {
+      ctx.fillStyle = theme.mute; ctx.font = '600 46px ' + F;
+      ctx.fillText('이번 달 쓴 날', 585, y - 130);
     }
-    const n = nums.length;
-    const size = n <= 2 ? 200 : n <= 4 ? 145 : 105;
-    const gap = size * 1.36;
-    let y = 1180 - (n - 1) * gap / 2;
-    nums.forEach(v => { ctx.font = '800 ' + size + 'px ' + F; ctx.fillText(v, 585, y); y += gap; });
+    ctx.fillStyle = theme.ink; ctx.font = '800 230px ' + F;
+    ctx.fillText(d, 585, y + 80);
+
+    if (showLabel) {
+      ctx.fillStyle = theme.mute; ctx.font = '500 52px ' + F;
+      ctx.fillText('살아온 날 ' + e, 585, y + 200);
+    } else {
+      ctx.fillStyle = theme.mute; ctx.font = '600 66px ' + F;
+      ctx.fillText(e, 585, y + 200);
+    }
+
+    const w = 470, x = 585 - w / 2, by = y + 300;
+    ctx.fillStyle = theme.mute; ctx.globalAlpha = .28;
+    ctx.beginPath(); ctx.roundRect(x, by, w, 12, 6); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = d > e ? '#b0492f' : theme.ink;
+    const fw = Math.max(6, Math.min(w, d / Math.max(e, 1) * w));
+    ctx.beginPath(); ctx.roundRect(x, by, fw, 12, 6); ctx.fill();
   }
 
-  function renderAll() { renderPeople(); renderConv(); drawWall(); }
+  function renderAll() { renderBurn(); renderLog(); renderHist(); preview(); drawWall(); }
 
-  /* ---- 이벤트 ---- */
-  $('amt').addEventListener('input', renderConv);
-
-  $('add').addEventListener('click', async () => {
-    const name = $('f-name').value.trim();
-    const age = parseFloat($('f-age').value);
-    if (!name || !age) return;
-    state.people.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
-      name, age, until: 80, freq: 2, cost: 5, visits: [] });
-    $('f-name').value = ''; $('f-age').value = '';
+  $('amt').addEventListener('input', preview);
+  $('go').addEventListener('click', async () => {
+    const v = parseFloat($('amt').value);
+    if (!v || v <= 0) return;
+    state.spend.push({ id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
+      man: v, memo: $('memo').value.trim(), ts: Date.now() });
+    $('amt').value = ''; $('memo').value = '';
     await save(); renderAll();
+  });
+  $('rate').addEventListener('input', async () => {
+    const v = parseFloat($('rate').value);
+    if (isNaN(v) || v <= 0) return;
+    state.rate = v; await save(); renderAll();
   });
 
   $('wallBtn').addEventListener('click', () => { drawWall(); $('dlg').showModal(); });
   $('close').addEventListener('click', () => $('dlg').close());
-
-  document.querySelectorAll('#sw div').forEach(s =>
+  $('tog').addEventListener('click', () => {
+    showLabel = !showLabel;
+    $('tog').classList.toggle('on', showLabel);
+    $('tog').textContent = showLabel ? '설명 넣기' : '숫자만';
+    drawWall();
+  });
+  document.querySelectorAll('.opts .sw').forEach(s =>
     s.addEventListener('click', () => {
-      document.querySelectorAll('#sw div').forEach(x => x.classList.remove('on'));
+      document.querySelectorAll('.opts .sw').forEach(x => x.classList.remove('on'));
       s.classList.add('on');
-      theme = { bg: s.dataset.bg, ink: s.dataset.ink };
+      theme = { bg: s.dataset.bg, ink: s.dataset.ink, mute: s.dataset.mute };
       drawWall();
     })
   );
-
   $('dl').addEventListener('click', () => {
     const a = document.createElement('a');
     a.download = 'wallpaper.png'; a.href = $('cv').toDataURL('image/png'); a.click();
@@ -329,12 +330,9 @@
   $('expBtn').addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'meets-backup.json';
-    a.click();
+    a.href = URL.createObjectURL(blob); a.download = 'burn-backup.json'; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
-
   $('impBtn').addEventListener('click', () => $('impFile').click());
   $('impFile').addEventListener('change', e => {
     const file = e.target.files[0];
@@ -343,7 +341,11 @@
     r.onload = async () => {
       try {
         const d = JSON.parse(r.result);
-        if (d && Array.isArray(d.people)) { state = d; await save(); renderAll(); }
+        if (d && Array.isArray(d.spend)) {
+          state = Object.assign({ spend: [], rate: 10 }, d);
+          $('rate').value = state.rate;
+          await save(); renderAll();
+        }
       } catch (err) {}
       e.target.value = '';
     };
@@ -353,7 +355,9 @@
   (async () => {
     await detect();
     const saved = await load();
-    if (saved && saved.people) state = saved;
+    if (saved && Array.isArray(saved.spend)) state = Object.assign(state, saved);
+    $('rate').value = state.rate || 10;
+    buildQuick();
     showStatus();
     renderAll();
   })();
